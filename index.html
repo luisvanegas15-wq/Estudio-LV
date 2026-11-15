@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<title>Estudio LV</title>
+<style>
+:root{--pri:#4f46e5;--pri2:#7c3aed;--bg:#f4f5fb;--card:#fff;--txt:#1e1b4b;--sub:#6b7280;--line:#e5e7eb}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:90px}
+header{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;padding:calc(env(safe-area-inset-top) + 22px) 20px 26px;border-radius:0 0 26px 26px}
+header small{opacity:.85;font-size:13px}
+header h1{font-size:24px;margin-top:4px}
+.wrap{padding:18px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:-34px}
+.stat{background:var(--card);border-radius:16px;padding:14px 8px;text-align:center;box-shadow:0 4px 14px rgba(79,70,229,.12)}
+.stat b{font-size:22px;color:var(--pri);display:block}
+.stat span{font-size:11px;color:var(--sub)}
+h2{font-size:17px;margin:22px 0 10px;display:flex;justify-content:space-between;align-items:center}
+.card{background:var(--card);border-radius:16px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.04);display:flex;align-items:center;gap:12px}
+.dot{width:14px;height:40px;border-radius:8px;flex-shrink:0}
+.card .info{flex:1}
+.card .info b{font-size:15px;display:block}
+.card .info span{font-size:12px;color:var(--sub)}
+.icon-btn{background:none;border:none;font-size:18px;color:var(--sub);padding:6px;cursor:pointer}
+.empty{text-align:center;color:var(--sub);font-size:14px;padding:30px 10px;background:var(--card);border-radius:16px}
+.btn{background:linear-gradient(135deg,var(--pri),var(--pri2));color:#fff;border:none;border-radius:12px;padding:10px 16px;font-size:14px;font-weight:600;cursor:pointer}
+.btn.full{width:100%;padding:14px;font-size:15px;margin-top:8px}
+.btn.ghost{background:#eef2ff;color:var(--pri)}
+.tip{background:#eef2ff;border-radius:16px;padding:14px 16px;font-size:14px;line-height:1.4}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;padding:8px 0 calc(env(safe-area-inset-bottom) + 8px);border-top:1px solid var(--line)}
+nav button{background:none;border:none;font-size:11px;color:var(--sub);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;flex:1}
+nav button i{font-style:normal;font-size:21px}
+nav button.on{color:var(--pri);font-weight:700}
+.view{display:none}.view.on{display:block}
+.modal{position:fixed;inset:0;background:rgba(15,13,40,.5);display:none;align-items:flex-end;z-index:9}
+.modal.on{display:flex}
+.sheet{background:#fff;width:100%;border-radius:24px 24px 0 0;padding:22px 20px calc(env(safe-area-inset-bottom) + 22px)}
+.sheet h3{margin-bottom:14px}
+label{font-size:13px;color:var(--sub);display:block;margin:10px 0 4px}
+input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;font-size:16px}
+.colors{display:flex;gap:10px;flex-wrap:wrap}
+.colors div{width:34px;height:34px;border-radius:50%;cursor:pointer;border:3px solid transparent}
+.colors div.sel{border-color:var(--txt)}
+.soon{text-align:center;padding:60px 20px;color:var(--sub)}
+.soon i{font-style:normal;font-size:46px;display:block;margin-bottom:10px}
+</style>
+</head>
+<body>
+
+<header>
+  <small id="saludo">Hola 👋</small>
+  <h1>Estudio LV</h1>
+</header>
+
+<div class="wrap">
+  <!-- INICIO -->
+  <section class="view on" id="v-inicio">
+    <div class="stats">
+      <div class="stat"><b id="s-mat">0</b><span>Materias</span></div>
+      <div class="stat"><b id="s-ent">0</b><span>Entregas</span></div>
+      <div class="stat"><b id="s-pro">–</b><span>Promedio</span></div>
+    </div>
+    <h2>Tus materias</h2>
+    <div id="lista-inicio"></div>
+    <h2>Consejo del día</h2>
+    <div class="tip" id="tip"></div>
+  </section>
+
+  <!-- MATERIAS -->
+  <section class="view" id="v-materias">
+    <h2>Materias <button class="btn" onclick="abrirMateria()">+ Nueva</button></h2>
+    <div id="lista-materias"></div>
+  </section>
+
+  <section class="view" id="v-entregas"><div class="soon"><i>📌</i>Entregas — Paso 2</div></section>
+  <section class="view" id="v-horario"><div class="soon"><i>🗓️</i>Horario — Paso 3</div></section>
+  <section class="view" id="v-enfoque"><div class="soon"><i>⏱️</i>Enfoque — Paso 5</div></section>
+</div>
+
+<nav>
+  <button class="on" data-v="inicio"><i>🏠</i>Inicio</button>
+  <button data-v="materias"><i>📚</i>Materias</button>
+  <button data-v="entregas"><i>📌</i>Entregas</button>
+  <button data-v="horario"><i>🗓️</i>Horario</button>
+  <button data-v="enfoque"><i>⏱️</i>Enfoque</button>
+</nav>
+
+<!-- MODAL MATERIA -->
+<div class="modal" id="m-materia" onclick="if(event.target===this)cerrar()">
+  <div class="sheet">
+    <h3 id="m-titulo">Nueva materia</h3>
+    <label>Nombre</label>
+    <input id="f-nombre" placeholder="Ej: Psicometría">
+    <label>Docente (opcional)</label>
+    <input id="f-docente" placeholder="Ej: Prof. García">
+    <label>Color</label>
+    <div class="colors" id="f-colores"></div>
+    <button class="btn full" onclick="guardarMateria()">Guardar</button>
+    <button class="btn full ghost" id="b-borrar" onclick="borrarMateria()">Eliminar materia</button>
+  </div>
+</div>
+
+<script>
+const KEY='estudioLV';
+let db=JSON.parse(localStorage.getItem(KEY)||'{"materias":[],"entregas":[]}');
+const COLORES=['#4f46e5','#7c3aed','#db2777','#ef4444','#f59e0b','#10b981','#06b6d4','#0ea5e9'];
+let editId=null,colorSel=COLORES[0];
+const TIPS=['Divide las tareas grandes en pasos de 25 minutos.','Revisa tus entregas de la semana cada lunes.','Estudia lo más difícil cuando tengas más energía.','Explicar un tema en voz alta te ayuda a recordarlo.','Descansa 5 minutos por cada 25 de estudio.','Empieza las entregas importantes al menos 3 días antes.'];
+
+function guardar(){localStorage.setItem(KEY,JSON.stringify(db))}
+function $(id){return document.getElementById(id)}
+
+function saludo(){const h=new Date().getHours();$('saludo').textContent=(h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches')+' 👋'}
+
+function tarjeta(m,editable){
+  return `<div class="card"><div class="dot" style="background:${m.color}"></div>
+  <div class="info"><b>${m.nombre}</b><span>${m.docente||'Sin docente'}</span></div>
+  ${editable?`<button class="icon-btn" onclick="abrirMateria('${m.id}')">✏️</button>`:''}</div>`;
+}
+
+function render(){
+  $('s-mat').textContent=db.materias.length;
+  $('s-ent').textContent=db.entregas.length;
+  const vacio='<div class="empty">Aún no tienes materias.<br><br><button class="btn" onclick="ir(\'materias\');abrirMateria()">+ Agregar materia</button></div>';
+  $('lista-inicio').innerHTML=db.materias.length?db.materias.map(m=>tarjeta(m,false)).join(''):vacio;
+  $('lista-materias').innerHTML=db.materias.length?db.materias.map(m=>tarjeta(m,true)).join(''):'<div class="empty">Toca “+ Nueva” para agregar tu primera materia.</div>';
+}
+
+function ir(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>ir(b.dataset.v));
+
+function pintarColores(){
+  $('f-colores').innerHTML=COLORES.map(c=>`<div style="background:${c}" class="${c===colorSel?'sel':''}" onclick="colorSel='${c}';pintarColores()"></div>`).join('');
+}
+
+function abrirMateria(id){
+  editId=id||null;
+  const m=db.materias.find(x=>x.id===id);
+  $('m-titulo').textContent=m?'Editar materia':'Nueva materia';
+  $('f-nombre').value=m?m.nombre:'';
+  $('f-docente').value=m?m.docente:'';
+  colorSel=m?m.color:COLORES[db.materias.length%COLORES.length];
+  $('b-borrar').style.display=m?'block':'none';
+  pintarColores();
+  $('m-materia').classList.add('on');
+}
+function cerrar(){$('m-materia').classList.remove('on')}
+
+function guardarMateria(){
+  const nombre=$('f-nombre').value.trim();
+  if(!nombre){alert('Escribe el nombre de la materia');return}
+  const datos={nombre,docente:$('f-docente').value.trim(),color:colorSel};
+  if(editId){Object.assign(db.materias.find(x=>x.id===editId),datos)}
+  else{db.materias.push({id:Date.now().toString(),...datos})}
+  guardar();render();cerrar();
+}
+function borrarMateria(){
+  if(!confirm('¿Eliminar esta materia?'))return;
+  db.materias=db.materias.filter(x=>x.id!==editId);
+  guardar();render();cerrar();
+}
+
+saludo();
+$('tip').textContent='💡 '+TIPS[new Date().getDate()%TIPS.length];
+render();
+</script>
+</body>
+</html>
