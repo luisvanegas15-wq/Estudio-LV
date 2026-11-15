@@ -1,0 +1,11 @@
+{
+  "name": "Estudio LV",
+  "short_name": "Estudio LV",
+  "description": "Organizador para estudiantes: materias, entregas, horario, notas y enfoque.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4f5fb",
+  "theme_color": "#4f46e5",
+  "icons": [{ "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }]
+}
