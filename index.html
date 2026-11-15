@@ -271,7 +271,7 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
     <button class="btn full ghost" onclick="document.getElementById('a-file').click()">⬆️ Restaurar copia</button>
     <input type="file" id="a-file" accept=".json,application/json" style="display:none" onchange="importar(this)">
     <p class="mini">📲 Para instalarla: en Safari toca Compartir → “Agregar a inicio”. En Android: menú ⋮ → “Instalar app”. Funciona sin internet y tus datos quedan solo en tu celular.</p>
-    <p class="mini" style="text-align:center">Estudio LV · una app de LV Studio</p>
+    <p class="mini" style="text-align:center">Estudio LV · versión 1.2 · una app de LV Studio</p>
   </div>
 </div>
 
@@ -709,7 +709,14 @@ function render(){
 $('tip').textContent='💡 '+TIPS[new Date().getDate()%TIPS.length];
 render();pintarTimer();revisarHash();
 setInterval(()=>{if(!fin)render()},60000);
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator){
+  let recargado=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!recargado){recargado=true;location.reload()}});
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
+    reg.update();
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update()});
+  }).catch(()=>{});
+}
 </script>
 </body>
 </html>
