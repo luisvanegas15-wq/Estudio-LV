@@ -279,24 +279,14 @@ input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:
   <div class="sheet">
     <h3>✨ Activa Estudio LV completa</h3>
     <p class="mini" style="font-size:14px">La versión de prueba permite 2 materias, 3 entregas y 3 clases. Activa la versión completa para usarla sin límites durante todo tu semestre.</p>
-    <a class="btn full" href="https://wa.me/573202903722?text=Hola%2C%20quiero%20activar%20Estudio%20LV" target="_blank" rel="noopener">💬 Comprar por WhatsApp</a>
+    <a class="btn full" href="https://wa.me/573187179215?text=Hola%2C%20quiero%20activar%20Estudio%20LV" target="_blank" rel="noopener">💬 Comprar por WhatsApp</a>
     <button class="btn full ghost" onclick="cerrar('m-pro');abrirAjustes()">Ya tengo mi código</button>
   </div>
 </div>
 
-<div class="modal" id="m-admin" onclick="if(event.target===this)cerrar('m-admin')">
-  <div class="sheet">
-    <h3>🔑 Generar activación</h3>
-    <label>Nombre del comprador</label>
-    <input id="g-nombre" placeholder="Ej: María Fernanda López">
-    <button class="btn full" onclick="generar()">Generar enlace</button>
-    <div id="g-out"></div>
-  </div>
-</div>
-
 <script>
-const SECRET='LVStudio-EstudioLV-2026';
-const ADMIN_PIN='LV2026';
+// Licencia: enlace firmado con la llave de LV Studio (solo la llave pública está aquí)
+const LIC_PUB={x:'3K1sKw21aD8hwYyrfECZw2KG8nC2H8hGvyIB564SF-w',y:'Hi5MWU8Aenc7wf_Q9oqS5mn9iPxMjtiMaCFrghDcqSc'},LIC_APP='ESTUDIOLV1';
 const LIM={materias:2,entregas:3,clases:3};
 
 const KEY='estudioLV';
@@ -337,53 +327,44 @@ function saludo(){
   $('saludo').textContent=(h<12?'Buenos días':h<19?'Buenas tardes':'Buenas noches')+(n?', '+n:'')+' 👋';
 }
 
-function firma(n){
-  const s=n.trim().toLowerCase()+SECRET;let a=5381,b=0x811c9dc5;
-  for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);a=((a<<5)+a+c)>>>0;b=Math.imul(b^c,16777619)>>>0}
-  return a.toString(36)+b.toString(36);
+const b64uB=t=>{t=t.replace(/-/g,'+').replace(/_/g,'/');while(t.length%4)t+='=';return Uint8Array.from(atob(t),c=>c.charCodeAt(0))};
+async function verificarLic(t){
+  try{
+    t=String(t||'').trim();const m=t.match(/(?:activar|act)=([^&\s]+)/);if(m)t=m[1];
+    try{t=decodeURIComponent(t)}catch(e){}
+    const[e,f]=t.split('.');if(!e||!f)return null;
+    const n=new TextDecoder().decode(b64uB(e)).trim();if(n.length<2)return null;
+    const k=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x:LIC_PUB.x,y:LIC_PUB.y},{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
+    const ok=await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},k,b64uB(f),new TextEncoder().encode(LIC_APP+'|'+n));
+    return ok?n:null;
+  }catch(e){return null}
 }
-function activa(){return !!(db.lic&&db.lic.n&&db.lic.f===firma(db.lic.n))}
+// Quien ya había activado con el sistema anterior conserva su licencia
+if(db.lic&&db.lic.n&&db.lic.f&&!db.lic.v){db.lic={n:db.lic.n,v:2,migrada:true};localStorage.setItem(KEY,JSON.stringify(db))}
+function activa(){return !!(db.lic&&db.lic.n&&db.lic.v===2)}
 function limite(tipo){
   if(activa()||db[tipo].length<LIM[tipo])return false;
   abrir('m-pro');return true;
 }
-function procesarCodigo(code){
-  try{code=decodeURIComponent(code.trim())}catch(e){return false}
-  const i=code.lastIndexOf('.');if(i<1)return false;
-  const p=code.slice(0,i),f=code.slice(i+1);let n;
-  try{n=decodeURIComponent(escape(atob(p)))}catch(e){return false}
-  if(!n||f!==firma(n))return false;
-  db.lic={n,f};
+async function procesarCodigo(code){
+  const n=await verificarLic(code);
+  if(!n)return false;
+  db.lic={n,v:2,fecha:hoyISO()};
   if(!db.ajustes.nombre)db.ajustes.nombre=n.trim().split(' ')[0];
   guardar();render();
   setTimeout(()=>alert(`🎓 ¡Bienvenido/a, ${n}!\nEstudio LV quedó activada.\n\nOrganiza hoy y tu semestre se ordena solo. ¡Muchos éxitos!`),100);
   return true;
 }
-function activarManual(){
+async function activarManual(){
   const t=$('a-codigo').value.trim();
-  const c=t.includes('act=')?t.split('act=')[1]:t;
-  if(procesarCodigo(c)){$('a-codigo').value='';cerrar('m-ajustes')}
+  if(await procesarCodigo(t)){$('a-codigo').value='';cerrar('m-ajustes')}
   else alert('Código no válido. Revisa que lo hayas copiado completo.');
 }
-function generar(){
-  const n=$('g-nombre').value.trim();
-  if(!n){alert('Escribe el nombre del comprador');return}
-  const p=encodeURIComponent(btoa(unescape(encodeURIComponent(n))));
-  const link=location.origin+location.pathname+'#act='+p+'.'+firma(n);
-  const msg=`¡Hola ${n}! 🎓 Gracias por comprar Estudio LV.\n\n1️⃣ Abre este enlace para activar tu app:\n${link}\n\n2️⃣ Instálala: en Safari toca Compartir → "Agregar a inicio".\n3️⃣ Si al abrirla desde el inicio sale "Versión de prueba", ve a ⚙️ Ajustes y pega este mismo enlace.\n\n¡Éxitos en tu semestre! — LV Studio`;
-  $('g-out').innerHTML=`<div class="link-box" id="g-link">${esc(link)}</div>
-    <button class="btn full ghost" id="g-copy">📋 Copiar enlace</button>
-    <a class="btn full" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">💬 Enviar por WhatsApp</a>`;
-  $('g-copy').onclick=()=>{navigator.clipboard?navigator.clipboard.writeText(link).then(()=>alert('Enlace copiado ✅')):prompt('Copia el enlace:',link)};
-}
-function revisarHash(){
+async function revisarHash(){
   const h=location.hash;
-  if(h.startsWith('#act=')){
+  if(h.startsWith('#activar=')||h.startsWith('#act=')){
     history.replaceState(null,'',location.pathname);
-    if(!procesarCodigo(h.slice(5)))alert('Este enlace de activación no es válido.');
-  }else if(h==='#lvadmin'){
-    history.replaceState(null,'',location.pathname);
-    if(prompt('PIN de administrador')===ADMIN_PIN)abrir('m-admin');
+    if(!(await procesarCodigo(h.slice(1))))alert('Este enlace de activación no es válido.');
   }
 }
 
